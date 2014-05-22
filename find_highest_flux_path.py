@@ -6,10 +6,7 @@ To do so, this script must be passed a networkx wieghted digraph.  Each node sho
 
 This script then solves for the least cost path between every node in state A and every node in state B.  The cost function is implemented through a compounded product of the rate (k) values between nodes in the pathway, all multiplied by the equilibrium population of the starting node (giving flux out of that node and to the destination node).  A higher product is lower cost.  This script will use an implementation of Dijkstra's algorithm.'''
 def calculate_least_cost_path(input_graph):
-	'''This function will calculate the least cost path, as defined above, given a weighted digraph.  It returns a tuple of 2 values.  The first value is a tuple of each node in the least cost path, in the order in which they are traversed.  The second value is the actual flux along this path.'''
-   def cost_of_path(current_node, edge_to_unvisited_node):
-      '''Returns the tentative cost of the path between a node with a decided cost (a "visited" node) and a node with an undecided cost.'''
-      return current_node['cost']*edge_to_unvisited_node['k']
+   '''This function will calculate the least cost path, as defined above, given a weighted digraph.  It returns a tuple of 2 values.  The first value is a tuple of each node in the least cost path, in the order in which they are traversed.  The second value is the actual flux along this path.'''
    #This list will hold the least cost and associated path from every node in A to every node in B.
    cost_and_path_list = []
 
@@ -33,7 +30,7 @@ def calculate_least_cost_path(input_graph):
 		  unvisited_list.append(node_name)
 
 	       #Set the starting node cost to its population.
-	       current_graph.node[starting_node_name]['cost'] = current_graph.node[starting_node_name]['population']
+	       current_graph.node[starting_node_name]['cost'] = current_graph.node[starting_node_name]['equilibrium_population']
 	       #Set the looping check parameter to False
 	       done = False
 
@@ -67,9 +64,9 @@ def calculate_least_cost_path(input_graph):
 
                #iterate over every node in the path  until we reach the starting node.
                while current_node_name != starting_node_name:
-                  for adjacent_node_name in current_graph[current_node_name]
+                  for adjacent_node_name in current_graph.predecessors(current_node_name):
                      #We know that if the cost of a node adjacent to the current node is equal to the cost of the current node divided by the k value for the path FROM THE ADJACENT NODE TO  THE CURRENT NODE (since the graph is bidirectional, then this node must have been used to make the cost value for the current node.  Thus, it is part of the least cost path. Additionally, we must make sure not to backtrack.
-                     if current_graph.node[adjacent_node_name]['cost'] == current_graph.node[current_node_name]['cost'] / current_graph.node[adjacent_node_name][current_node_name]['k'] and (adjacent_node_name not in path):
+                     if current_graph.node[adjacent_node_name]['cost'] == current_graph.node[current_node_name]['cost'] / current_graph.edge[adjacent_node_name][current_node_name]['k'] and not (adjacent_node_name in path):
                         path.append(adjacent_node_name)
                         #Used to check for endless loop.
                         old_node_name = current_node_name
@@ -78,8 +75,10 @@ def calculate_least_cost_path(input_graph):
                         break
 
                   #If the current node did not change, then there is no path.  break the endless loop
-                  if current_node_name == ajdacent_node_name: break
-
+                  try:
+                     if current_node_name == old_node_name: break
+                  except UnboundLocalError:
+                     pass
                #reverse the path
                path = path[::-1]
                #append the cost and path to a list.
