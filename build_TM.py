@@ -36,7 +36,7 @@ def normalize_matrix(shavedMatrix):
             shavedMatrix[irow] = row/total
     return shavedMatrix
 
-def main(westH5, assignH5, first_iter, last_iter):
+def TM_Builder(westH5, assignH5, first_iter, last_iter):
     bin_labels    = assignH5['bin_labels']
     dim           = bin_labels.shape[0]
     tMatrix       = np.zeros((dim,dim))
