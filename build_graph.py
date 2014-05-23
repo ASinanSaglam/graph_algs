@@ -40,7 +40,7 @@ if __name__ == '__main__':
     assignments = assign_h5['assignments']
     
     # Build the matrix, find eigsystem
-    TM, eigval, eigvec, labels = TM_builder(westH5, assign_h5, first_iter, last_iter)
+    TM, eigval, eigvec, labels = TM_Builder(westH5, assign_h5, first_iter, last_iter)
     norm_eigvec = eigvec[:,0]/eigvec[:,0].sum()
     DG = DG_Builder(TM, norm_eigvec, labels)
     nx.draw(DG)

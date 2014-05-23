@@ -1,6 +1,6 @@
 import h5py 
 import numpy as np
-import matplotlib.pyplot as plt
+import networkx as nx
 from scipy.linalg import eig
 
 def build_raw_matrix(first_iter, last_iter, westH5, assignments, init_matrix):
@@ -69,12 +69,12 @@ class H5File:
         return self.openFile
 
 def build_DiGraph(TM, eigvec, labels):
-    attrs = {}
+    nodes = []
     for ilabel, label in enumerate(labels):
-        attrs[label] = eigvec[ilabel]
+        nodes.append( (label, {'equilibrium_population':eigvec[ilabel]}) )
     DG = nx.DiGraph()
-    DG.add_nodes_from(labels, attr_dict=attrs)
+    DG.add_nodes_from(nodes)
     # Now add edges with weights
     ilabels = range(len(labels))
-    DG.add_weighted_edges_from([(labels[iu],labels[iv],TM[iu,iv]) for iu in ilabels for iv in ilabels], weight='t_prob')
+    DG.add_weighted_edges_from([(labels[iu],labels[iv],TM[iu,iv]) for iu in ilabels for iv in ilabels], weight='k')
     return DG
