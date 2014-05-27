@@ -13,8 +13,10 @@ def calculate_least_cost_path(input_graph):
    #Iterate over each node in the graph, finding nodes with a state of A.  These are starting nodes.
    for starting_node_name in input_graph.nodes():
       if input_graph.node[starting_node_name]["state"] == 'A':
+         print starting_node_name
         #We now must iterate over each ending node; that is, each node with a state of B
          for ending_node_name in input_graph.nodes():
+            print '---' + ending_node_name
             if input_graph.node[ending_node_name]["state"] == 'B':
 
                #We now implement Dijkstra's algorithm.
@@ -66,7 +68,7 @@ def calculate_least_cost_path(input_graph):
                while current_node_name != starting_node_name:
                   for adjacent_node_name in current_graph.predecessors(current_node_name):
                      #We know that if the cost of a node adjacent to the current node is equal to the cost of the current node divided by the k value for the path FROM THE ADJACENT NODE TO  THE CURRENT NODE (since the graph is bidirectional, then this node must have been used to make the cost value for the current node.  Thus, it is part of the least cost path. Additionally, we must make sure not to backtrack.
-                     if current_graph.node[adjacent_node_name]['cost'] == current_graph.node[current_node_name]['cost'] / current_graph.edge[adjacent_node_name][current_node_name]['k'] and not (adjacent_node_name in path):
+                     if current_graph.node[adjacent_node_name]['cost'] * current_graph.edge[adjacent_node_name][current_node_name]['k'] == current_graph.node[current_node_name]['cost'] and not (adjacent_node_name in path):
                         path.append(adjacent_node_name)
                         #Used to check for endless loop.
                         old_node_name = current_node_name
@@ -87,7 +89,7 @@ def calculate_least_cost_path(input_graph):
    #After calculating every path and its associated cost, we simply find the path with the least cost among these paths.
    least_cost_and_path = cost_and_path_list[0]
    for cost_and_path in cost_and_path_list:
-      if cost_and_path[0] > least_cost_and_path: least_cost_and_path = cost_and_path
+      if cost_and_path[0] > least_cost_and_path[0]: least_cost_and_path = cost_and_path
 
-   return cost_and_path
+   return least_cost_and_path
 

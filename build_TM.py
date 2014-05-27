@@ -2,6 +2,7 @@ import h5py
 import numpy as np
 import networkx as nx
 from scipy.linalg import eig
+import networkx as nx
 
 def build_raw_matrix(first_iter, last_iter, westH5, assignments, init_matrix):
     dim = init_matrix.shape[0]
