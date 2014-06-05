@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+!/usr/bin/env python
 '''This is intended as a module.
 
 This module is used to compute committor probabilites.                                             
@@ -6,11 +6,13 @@ The idea is as follows:
     From a weighted ensemble simulation, we are given a set of bins, along with segments in each 
 bin.  Each segment has a certain weight.  By watching the system evolve over time, we can track the
 transition rates between bins.  Normalizing these transition rates gives the average probability 
-that a segment in a certain bin will next move to some other bin.
+that a segment in a certain bin will next move to some other bin.  In fact, we need not use the
+binning scheme use for the progress coordinates in the propogation steps.  We may use any set of 
+bins as can be defined by wassign.
     We can visualize this process as a network of nodes, each of which is a bin. Nodes are connected
 by directed edges which denote the probability of moving between bins. Furthermore, we can define
 "states" on this set of bins.  A state is a subset of the total set of bins.  For example, we may
-define a certain set of bins as the "folded" or "bound" state of a protein.
+define a certain set of bins such that it corresponds to the "folded" or "bound" state of a protein.
     The set of all bins not defined as another state is called the intermediate (I) state.  Assuming
 the network is not disjoint (ie, each node is connected to every other node by some path), then a
 segment in the intermediate state, moving on a random walk defined by the transition probabilities
@@ -23,7 +25,7 @@ suitable network).
     With two or more absorbtion states, then a segment will sometimes reach one absorbtion state 
 (and then "stop"), or sometimes reach another absorbtion state.  The associated probabilities of 
 reaching each absorbtion state are known as the committor probabilities.
-    If we define absorbtion states such that they correspond to free energy well, then we can
+    If we define absorbtion states such that they correspond to free energy wells, then we can
 use committor probabilities to characterize the transition state.  Given two absorbtion states, 
 we may look at each node and compare its committor probabilty for the first absorbtion states to
 its committor probability for the second absorbtion  state.  If they are equal, then a segment in
@@ -66,6 +68,17 @@ class state_info:
         self.state_index['Intermediate'] = [x for x in self.state_index['Intermediate'] if not x in indices_now_in_other_state]
         
 def equal_committor_probability_bins(state_info, error_margin):
+    'This is the main function for this module.  Given a state_info class, as defined above, and an
+error margin, it calculates the bins from which committor probabilites to the non-intermediate 
+states are approximately equal.  We define "approximately equal" using the error margin.  For 
+example. If there are two states, then a bin should ideally have .5 committor probability to each.
+With an error margin of .1, a bin can have probabilities differing as mucn as .4:.6, rather than 
+.5:.5.  With three bins, ideal probability is 1/3.  With an error margin of .05 will allow bins with
+probabilities as different as, for example about .28333:.33333:.38334.  An error margin at or above 
+.5 will return all bins.  This can be useful in many cases.
+
+    This function returns the bin label and committor probability to each state, for each bin that 
+fits the definition of having approximately equal comittor probabilities to each state.'''
     #The AbsorbTM is a matrix built from the original transition matrix, but now the rows corresponding to absorbtive states are zeroed.
     AbsorbTM = state_info.TM[...,...]
     for state_name in state_info.states.iterkeys():
