@@ -1,4 +1,4 @@
-!/usr/bin/env python
+#!/usr/bin/env python
 '''This is intended as a module.
 
 This module is used to compute committor probabilites.                                             
