@@ -43,7 +43,35 @@ import numpy as np
 from numpy.linalg import solve
 
 class state_info:
+    '''This class is used as a convenient wrapper for passing information on bins, their names, 
+indices, labels, and states to the equal_committor_probability_bins function.  It also includes the 
+set_state function, which the user must use to define at least two states before passing this class 
+to the equal_committor_probability function.'''
     def __init__(self, TM, evals, evecs, labels):
+        '''Upon initialization, this class takes the output from the TM_builder.  It uses it to 
+        build a couple of handy items.  
+        First, it records all the bin labels.  Their order corresponds to the indices of the 
+        transition matrix.  It also records the transition matrix, which will be used to calculate 
+        committor probabilities in the equal_committor_probability_bins function.  Eigenvalues and
+        eigenvectors of the transition matrix TM are also stored in the variables evals and evecs, 
+        though they are not used in the equal_committor_probability function.  However, it is 
+        handy to store them for easy access.  
+        
+        The variable self.states is a dictionary containing describing all states.  It will contain
+        state names as keys, which correspond to a value of a sub-dictionary.  This sub-dictionary 
+        has a few possible keys: the key 'labels' gives the labels for every bin in the state.  It 
+        is some type of iteratable as passed by the user.  The key 'indices' gives a list of every 
+        bin index corresponding to a bin in this state. Here we simply initialize the dictionary.
+
+        The variable self.index is a dictionary.  A key of a bin label will give the corresponding 
+        bin index (on the transition matrix), while a key of an index will give the corresponding 
+        bin label. 
+
+        The variable self.state_index contains some of the same information in self.states.  It is
+        simply an easier way for the equal_committor_probability function to iterate over the
+        indices in each state.  Here, we initialize it and then add every index to the intermediate
+        state.'''
+
         self.labels = labels
         self.TM = TM
         self.evals = evals
@@ -64,11 +92,14 @@ class state_info:
         self.states[state_name]['indices'] = index_list
         self.state_index[state_name] = index_list
         self.intermediate_state_update(index_list)
-    def intermediate_state_update(self, indices_now_in_other_state):
+    def intermediate_state_update(self, indices_now_in_other_state):i
+        '''The intermediate state contains every bin NOT in any other state.  Thus when we add a
+        new state, we need to remove that state's bins from the Intermediate state.'''
         self.state_index['Intermediate'] = [x for x in self.state_index['Intermediate'] if not x in indices_now_in_other_state]
         
+
 def equal_committor_probability_bins(state_info, error_margin):
-    'This is the main function for this module.  Given a state_info class, as defined above, and an
+    '''This is the main function for this module.  Given a state_info class, as defined above, and an
 error margin, it calculates the bins from which committor probabilites to the non-intermediate 
 states are approximately equal.  We define "approximately equal" using the error margin.  For 
 example. If there are two states, then a bin should ideally have .5 committor probability to each.
@@ -118,17 +149,23 @@ fits the definition of having approximately equal comittor probabilities to each
     state_count = 0
     for state in state_info.states.iterkeys():
         if state != 'Intermediate' : state_count += 1
-    #Calculate "ideal" probability flux to each state
+    #Calculate "ideal" committor probability to each state (where "ideal" means equal to all states).
     ideal_probability = 1/float(state_count)
     for index in state_info.state_index['Intermediate']:
+	#Here we check if the committor probabilities to each state are approximately equal
         approximately_equal = True
+	#Iterate over all non-intermediate states.
         for state_name in state_info.states.iterkeys():
             if state_name != 'Intermediate':
                 bin_name = state_info.index[index]
+                #If, in one case, the probabilities fall outside the acceptable range, then the bin is not included.
                 if CommProbs[state_name][bin_name] < ideal_probability - error_margin or CommProbs[state_name][bin_name] > ideal_probability + error_margin:
                     approximately_equal = False
         if approximately_equal == True:
-            equal_probability_committor_list.append( (state_info.index[index] , [CommProbs[state_name][state_info.index[index]] for state_name in state_info.states.iterkeys()] ))
-    return equal_probability_committor_list
+            #If the criteria are satisfied, we append a tuple of the bin's label and a nested tuple with the each state name and its corresponding committor probability.
+            equal_probability_committor_list.append( (state_info.index[index] , [(state_name, CommProbs[state_name][state_info.index[index]]) for state_name in state_info.states.iterkeys()] ))
+     #We return the hideously formatted list.  The advantage here is that scripts written to use this module can easily interact with the outputted data.
+     # Data format:  [ (bin-label , [ ( state 1 name, committor probability to state 1) , (state 2 name, committor probability to state 2), ...] ) ... ]
+     return equal_probability_committor_list
         
     
