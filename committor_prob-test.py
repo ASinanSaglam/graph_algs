@@ -44,7 +44,9 @@ if __name__ == '__main__':
     TM, eigval, eigvec, labels = TM_Builder(westH5, assign_h5, first_iter, last_iter)
     info = state_info(TM, eigval, eigvec, labels)
     print labels
-    info.set_state('A',labels[1:11])
-    info.set_state('B',labels[37:47])
+    info.set_state('A',labels[10:30])
+    info.set_state('B',labels[70:90])
     print info.states
-    print equal_committor_probability_bins(info, .1)
+    result =  equal_committor_probability_bins(info, .1)
+    for entry in result:
+        print entry

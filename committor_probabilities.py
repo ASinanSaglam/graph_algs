@@ -92,7 +92,7 @@ to the equal_committor_probability function.'''
         self.states[state_name]['indices'] = index_list
         self.state_index[state_name] = index_list
         self.intermediate_state_update(index_list)
-    def intermediate_state_update(self, indices_now_in_other_state):i
+    def intermediate_state_update(self, indices_now_in_other_state):
         '''The intermediate state contains every bin NOT in any other state.  Thus when we add a
         new state, we need to remove that state's bins from the Intermediate state.'''
         self.state_index['Intermediate'] = [x for x in self.state_index['Intermediate'] if not x in indices_now_in_other_state]
@@ -164,8 +164,8 @@ fits the definition of having approximately equal comittor probabilities to each
         if approximately_equal == True:
             #If the criteria are satisfied, we append a tuple of the bin's label and a nested tuple with the each state name and its corresponding committor probability.
             equal_probability_committor_list.append( (state_info.index[index] , [(state_name, CommProbs[state_name][state_info.index[index]]) for state_name in state_info.states.iterkeys()] ))
-     #We return the hideously formatted list.  The advantage here is that scripts written to use this module can easily interact with the outputted data.
-     # Data format:  [ (bin-label , [ ( state 1 name, committor probability to state 1) , (state 2 name, committor probability to state 2), ...] ) ... ]
-     return equal_probability_committor_list
+    #We return the hideously formatted list.  The advantage here is that scripts written to use this module can easily interact with the outputted data.
+    # Data format:  [ (bin-label , [ ( state 1 name, committor probability to state 1) , (state 2 name, committor probability to state 2), ...] ) ... ]
+    return equal_probability_committor_list
         
     
