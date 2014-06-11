@@ -29,11 +29,11 @@ def calculate_least_cost_path(input_graph):
 	             # Set all node cost values to 0 (greatest possible cost)
 	             for node_name in current_graph.nodes():
                           current_graph.node[node_name]['cost'] = 0.0
-		     # Add every node to the unvisited list.
-		     unvisited_list.append(node_name)
+		          # Add every node to the unvisited list.
+		          unvisited_list.append(node_name)
 
 	             # Set the starting node cost to its population.
-	             current_graph.node[starting_node_name]['cost'] = current_graph.node[starting_node_name]['equilibrium_population'].real #* 1000000000000000000000
+	             current_graph.node[starting_node_name]['cost'] = current_graph.node[starting_node_name]['equilibrium_population'].real
                      # Set the looping check parameter to False
 	             done = False
 
