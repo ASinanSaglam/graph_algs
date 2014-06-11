@@ -43,10 +43,11 @@ if __name__ == '__main__':
     # Build the matrix, find eigsystem
     TM, eigval, eigvec, labels = TM_Builder(westH5, assign_h5, first_iter, last_iter)
     info = state_info(TM, eigval, eigvec, labels)
-    print labels
-    info.set_state('A',labels[10:30])
-    info.set_state('B',labels[70:90])
+    for i, label in enumerate(labels):
+    	print "%s, %s" % (i, label)
+    info.set_state('A',[labels[i] for i in [110,111,112,113,131,132,133,134,152,153,154,155,173,174,175,176]])
+    info.set_state('B',[labels[i] for i in [264,265,266,267,285,286,287,288,306,307,308,309,327,328,329,330]])
     print info.states
-    result =  equal_committor_probability_bins(info, .1)
+    result =  equal_committor_probability_bins(info, .03)
     for entry in result:
         print entry
