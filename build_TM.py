@@ -65,9 +65,9 @@ def build_raw_matrix(first_iter, last_iter, westH5, assignments, init_matrix, to
                         break
     return init_matrix
 
-def shave_matrix(rawMatrix, tools=TM_tools):
+def shave_matrix(rawMatrix, mask, tools=TM_tools):
     if tools:
-        return TM_tools.shaveMatrix(rawMatrix)
+        return TM_tools.shaveMatrix(rawMatrix, mask)
     else:
         mask = np.ones(rawMatrix.shape[0], dtype=bool)
         for irow,row in enumerate(rawMatrix):
@@ -92,7 +92,8 @@ def buildFullTM(westH5, assignH5, first_iter, last_iter):
     # To build the matrix we need 1) dimensions 2) assignments
     assignments   = assignH5['assignments']
     tMatrix       = build_raw_matrix(first_iter, last_iter, westH5, assignments, tMatrix)
-    tMatrix,mask  = shave_matrix(tMatrix)
+    mask = np.ones(tMatrix.shape[0], dtype=np.bool)
+    tMatrix,mask  = shave_matrix(tMatrix, mask)
     bin_labels    = bin_labels[mask]
     tMatrix       = normalize_matrix(tMatrix)
     evals, evecs  = eig(tMatrix)
