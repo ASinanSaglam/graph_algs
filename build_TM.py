@@ -7,7 +7,7 @@ import networkx as nx
 try:
     import TM_tools 
 except ImportError:
-    pass
+    TM_tools = None
 
 ### Singleton class and thin h5wrapper
 class Singleton(type):
