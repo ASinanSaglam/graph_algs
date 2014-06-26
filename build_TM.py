@@ -41,17 +41,18 @@ class TM_Builder():
         return buildFullTM(self.h5File, self.assignFile, self.first_iter, self.last_iter)
 
 
-# TM Building tools
+# TM Building tools, all implementation here
 def build_raw_matrix(first_iter, last_iter, westH5, assignments, init_matrix, tools=TM_tools):
+    '''Build the raw matrix, iteration window is left exclusive'''
     dim = init_matrix.shape[0]
-    for iiter in range(first_iter-1, last_iter):
+    for iiter in range(first_iter, last_iter):
         print "Calculating iteration %i"%(iiter)
-        iter_obj = westH5.openFile['iterations']['iter_%08d'%(iiter+1)]
+        iter_obj = westH5.openFile['iterations']['iter_%08d'%(iiter)]
         weights  = iter_obj['seg_index']['weight'][...]
         if tools:
-            init_matrix = TM_tools.addIterToMatrix(assignments[iiter], weights, init_matrix, dim)
+            init_matrix = TM_tools.addIterToMatrix(assignments[iiter-1], weights, init_matrix, dim)
         else: 
-            for iwalk, walkerObj in enumerate(assignments[iiter]):
+            for iwalk, walkerObj in enumerate(assignments[iiter-1]):
                 for ipoint, point in enumerate(walkerObj):
                     if ipoint == 0:
                         prev_point = point
