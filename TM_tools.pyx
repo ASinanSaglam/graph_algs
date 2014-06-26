@@ -16,7 +16,8 @@ def addIterToMatrix(np.ndarray[DTYPE2_t, ndim=2] assignmentsIter, np.ndarray[DTY
                     np.ndarray[DTYPE_t, ndim=2] inMatrix, int dim):
     cdef:
         int iwalk, ipoint
-        int prev_point, point
+        DTYPE2_t prev_point, point 
+        np.ndarray[DTYPE2_t, ndim=1] walkObj
     for iwalk, walkObj in enumerate(assignmentsIter):
         for ipoint, point in enumerate(walkObj):
             if ipoint == 0:

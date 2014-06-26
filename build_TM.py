@@ -53,6 +53,7 @@ def build_raw_matrix(first_iter, last_iter, westH5, assignments, init_matrix, to
             init_matrix = TM_tools.addIterToMatrix(assignments[iiter-1], weights, init_matrix, dim)
         else: 
             for iwalk, walkerObj in enumerate(assignments[iiter-1]):
+                print walkerObj.dtype, walkerObj.shape
                 for ipoint, point in enumerate(walkerObj):
                     if ipoint == 0:
                         prev_point = point
