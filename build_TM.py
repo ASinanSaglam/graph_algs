@@ -50,7 +50,8 @@ def build_raw_matrix(first_iter, last_iter, westH5, assignments, init_matrix, to
         iter_obj = westH5.openFile['iterations']['iter_%08d'%(iiter)]
         weights  = iter_obj['seg_index']['weight'][...]
         if tools:
-            init_matrix = TM_tools.addIterToMatrix(assignments[iiter-1], weights, init_matrix, dim)
+            curr_assignments = np.array(assignments[iiter-1], dtype=np.uint16)
+            init_matrix = TM_tools.addIterToMatrix(curr_assignments, weights, init_matrix, dim)
         else: 
             for iwalk, walkerObj in enumerate(assignments[iiter-1]):
                 print walkerObj.dtype, walkerObj.shape

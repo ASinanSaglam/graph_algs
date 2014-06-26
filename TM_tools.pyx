@@ -8,8 +8,10 @@ np.import_array()
 
 DTYPE = np.float64
 DTYPE_2 = np.uint16
+DTYPE_3 = np.uint8
 ctypedef np.float64_t DTYPE_t
-ctypedef np.uint8_t DTYPE2_t
+ctypedef np.uint16_t DTYPE2_t
+ctypedef np.uint8_t DTYPE3_t
 
 @cython.boundscheck(False)
 #@cython.nonecheck(False)
@@ -32,7 +34,7 @@ def addIterToMatrix(np.ndarray[DTYPE2_t, ndim=2, cast=True] assignmentsIter, np.
     return inMatrix
 
 @cython.boundscheck(False)
-def shaveMatrix(np.ndarray[DTYPE_t, ndim=2] rawMatrix, np.ndarray[DTYPE2_t, ndim=1, cast=True] mask):
+def shaveMatrix(np.ndarray[DTYPE_t, ndim=2] rawMatrix, np.ndarray[DTYPE3_t, ndim=1, cast=True] mask):
     cdef: 
         np.ndarray[DTYPE_t, ndim=1] row
         int irow
@@ -52,16 +54,3 @@ def normalizeMatrix(np.ndarray[DTYPE_t, ndim=2] shavedMatrix):
         if total != 0.0:
             shavedMatrix[irow] = row/total
     return shavedMatrix
-
-#def TM_Builder(westH5, assignH5, first_iter, last_iter):
-    #bin_labels    = assignH5['bin_labels']
-    #dim           = bin_labels.shape[0]
-    #tMatrix       = np.zeros((dim,dim))
-    ## To build the matrix we need 1) dimensions 2) assignments
-    #assignments   = assignH5['assignments']
-    #tMatrix       = build_raw_matrix(first_iter, last_iter, westH5, assignments, tMatrix)
-    #tMatrix,mask  = shave_matrix(tMatrix)
-    #bin_labels    = bin_labels[mask]
-    #tMatrix       = normalize_matrix(tMatrix)
-    #evals, evecs  = eig(tMatrix)
-    #return tMatrix, evals, evecs, bin_labels
