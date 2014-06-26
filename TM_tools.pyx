@@ -29,21 +29,20 @@ def addIterToMatrix(np.ndarray[DTYPE2_t, ndim=2] assignmentsIter, np.ndarray[DTY
                 break
     return inMatrix
 
-#def shave_matrix(np.ndarray[DTYPE_t, ndim=2] rawMatrix):
-    #cdef ndarray[bool, ndim=1] mask
-    #mask = np.ones(rawMatrix.shape[0], dtype=bool)
-    #for irow,row in enumerate(rawMatrix):
-        #if rawMatrix[irow,:].sum() == 0.0 and rawMatrix[:,irow].sum() == 0.0:
-            #mask[irow] = False
-    #return rawMatrix[...,mask][mask,...], mask
+def shaveMatrix(np.ndarray[DTYPE_t, ndim=2] rawMatrix):
+    mask = np.ones(rawMatrix.shape[0], dtype=bool)
+    for irow,row in enumerate(rawMatrix):
+        if rawMatrix[irow,:].sum() == 0.0 and rawMatrix[:,irow].sum() == 0.0:
+            mask[irow] = False
+    return rawMatrix[...,mask][mask,...], mask
 
-#def normalize_matrix(shavedMatrix):
-    #for irow, row in enumerate(shavedMatrix):
-        #total = row.sum()
-        #if total != 0.0:
-            #shavedMatrix[irow] = row/total
-    #return shavedMatrix
-#
+def normalizeMatrix(np.ndarray[DTYPE_t, ndim=2] shavedMatrix):
+    for irow, row in enumerate(shavedMatrix):
+        total = row.sum()
+        if total != 0.0:
+            shavedMatrix[irow] = row/total
+    return shavedMatrix
+
 #def TM_Builder(westH5, assignH5, first_iter, last_iter):
     #bin_labels    = assignH5['bin_labels']
     #dim           = bin_labels.shape[0]
