@@ -3,6 +3,7 @@ import numpy as np
 import networkx as nx
 from scipy.linalg import eig
 import networkx as nx
+from TM_tools import addIterToMatrix
 
 def build_raw_matrix(first_iter, last_iter, westH5, assignments, init_matrix):
     dim = init_matrix.shape[0]
@@ -10,17 +11,30 @@ def build_raw_matrix(first_iter, last_iter, westH5, assignments, init_matrix):
         print "Calculating iteration %i"%(iiter)
         iter_obj = westH5.openFile['iterations']['iter_%08d'%(iiter+1)]
         weights  = iter_obj['seg_index']['weight'][...]
-        for iwalk, walkerObj in enumerate(assignments[iiter]):
-            for ipoint, point in enumerate(walkerObj):
-                if ipoint == 0:
-                    prev_point = point
-                if ipoint > 0 and point < dim:
-                    # Here it's now a transition between prev_point -> point
-                    #print prev_point, point, iwalk
-                    init_matrix[prev_point][point] += weights[iwalk]
-                if point == dim:
-                    break
+        print assignments[iiter].shape, assignments[iiter].dtype
+        print weights.shape, weights.dtype
+        print init_matrix.shape, init_matrix.dtype
+        print dim
+        init_matrix = addIterToMatrix(assignments[iiter], weights, init_matrix, dim)
     return init_matrix
+
+#def build_raw_matrix(first_iter, last_iter, westH5, assignments, init_matrix):
+    #dim = init_matrix.shape[0]
+    #for iiter in range(first_iter-1, last_iter):
+        #print "Calculating iteration %i"%(iiter)
+        #iter_obj = westH5.openFile['iterations']['iter_%08d'%(iiter+1)]
+        #weights  = iter_obj['seg_index']['weight'][...]
+        #for iwalk, walkerObj in enumerate(assignments[iiter]):
+            #for ipoint, point in enumerate(walkerObj):
+                #if ipoint == 0:
+                    #prev_point = point
+                #if ipoint > 0 and point < dim:
+                    ## Here it's now a transition between prev_point -> point
+                    ##print prev_point, point, iwalk
+                    #init_matrix[prev_point][point] += weights[iwalk]
+                #if point == dim:
+                    #break
+    #return init_matrix
 
 def shave_matrix(rawMatrix):
     mask = np.ones(rawMatrix.shape[0], dtype=bool)
