@@ -97,9 +97,9 @@ this class to the equal_committor_probability function.'''
             self.index[i] = labels[i]
             self.index[labels[i]] = i
         self.state_index = {'Intermediate' : [i for i in range(len(TM))] }
-    def set_state(self, state_name, state_labels):
+    def set_state(self, state_name, bin_labels):
         '''Creates a new state.  The state is comprised of bins with labels  
-        passed in state_lables (an iteratable).'''
+        passed in bin_labels (an iteratable).'''
         self.states[state_name] = {'labels' : state_labels}
         index_list = []
         for label in state_labels:
@@ -223,5 +223,15 @@ def equal_committor_probability_bins(state_info, error_margin):
     #                ...]) 
     #  ... ]
     return equal_probability_committor_list
-        
-    
+
+class WComProbsTool(WESTTool):
+    prog ='w_comprobs'
+    description = '''\
+Calculate the probability of a walker in a given bin next entering each of a 
+set of states. Bin assignments (usually "assignments.h5") and a right
+stochastic transition matrix must be supplied.
+
+-----------------------------------------------------------------------------
+Output format
+-----------------------------------------------------------------------------
+'''
