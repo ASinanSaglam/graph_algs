@@ -304,6 +304,17 @@ Command-line options
         rows = numpy.array(transmat_group['rows'], dtype=numpy.int16)
         cols = numpy.array(transmat_group['cols'], dtype=numpy.int16)
         self.transition_matrix[rows, cols] = transmat_group['k']
+        # Check that the transition matrix is properly normalized (this might
+        # not be the case if the user used the wrong flag, such as 
+        # '-s timepoint' when running w_postanalysis_matrix.
+        rowsums = self.transition_matrix.sum(axis=1)
+        rowsums[rowsums==0] = 1
+        if not numpy.allclose(rowsums, numpy.ones(rowsums.shape)):
+            print(numpy.absolute(rowsums-numpy.ones(rowsums.shape)).max())
+            raise ValueError('Supplied transition matrix does not seem to be '
+                             'normalized. Check that you supplied the right '
+                             'transition matrix and that you ran '
+                             'w_postanalysis_matrix with the correct flags.')
  
         # Convert colored to non-colored transition matrix, if needed
         if not self.i_use_color:
@@ -323,7 +334,6 @@ Command-line options
                 newmat[i,j] = numpy.sum(mat[i*nstates:(i+1)*nstates,
                                             j*nstates:(j+1)*nstates]
                                         ) 
-        #REMOVE THIS??
         newmat = normalize(newmat) 
         return newmat
 
