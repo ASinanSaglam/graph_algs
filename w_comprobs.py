@@ -11,6 +11,18 @@ import numpy
 from westpa import h5io
 from westpa.h5io import WESTPAH5File
 from westpa.extloader import get_object
+from scipy.sparse import csgraph
+from collections import Counter
+
+def normalize(m):
+    nm = m.copy()
+
+    row_sum = m.sum(1)
+    ii = numpy.nonzero(row_sum)[0]
+    nm[ii,:] = m[ii,:] / row_sum[ii][:, numpy.newaxis]
+
+    return nm
+
 
 class ComProb:
     '''
@@ -48,8 +60,6 @@ class ComProb:
     def get_minor(self, arr, row_idxs=None, col_idxs=None):
         '''Get the minor for ``arr``, an order-two tensor. Exclude rows and
         columns given in row_idxs and col_idxs, respectively.''' 
-        print("column idxs to remove: " + repr(col_idxs))
-        print("row idxs to remove: " + repr(row_idxs))
         newarr = self.remove_rows(self.remove_cols(arr, col_idxs), row_idxs)
         return newarr
          
@@ -60,18 +70,39 @@ class ComProb:
         results = numpy.zeros((nbins, len(self.state_idx_list)))
 
         # Get the indices of bins that are in one of the specified states.
-        bin_idxs_for_macrostates = []
+        bin_idxs_to_remove = [] 
         for state_idx in self.state_idx_list:
-            bin_idxs_for_macrostates += \
+            bin_idxs_to_remove += \
                     list(numpy.where(self.state_map == state_idx)[0])
+
+        # Make the graph described by the transition matrix strongly connected.
+        n_components, labels = csgraph.connected_components(self.transition_matrix,
+                                                            directed=True,
+                                                            connection='strong')
+        largest_component = Counter(labels).most_common(1)[0][0]
+        components = numpy.where(labels == largest_component)[0]
+  
+        # bad_idxs holds everything at first; we then remove what we want to 
+        # remain
+        bad_idxs = range(self.transition_matrix.shape[0])
+        print(components)
+        for component_idx in components:
+            bad_idxs.remove(component_idx)
+
+        bin_idxs_to_remove += bad_idxs 
+        # Remove duplicates
+        bin_idxs_to_remove = list(set(bin_idxs_to_remove))
                                        
         # Get the minor for the transition matrix, removing elements
         # corresponding to absorptive states.
         minor = self.get_minor(self.transition_matrix,
-                               row_idxs=bin_idxs_for_macrostates,
-                               col_idxs=bin_idxs_for_macrostates) 
+                               row_idxs=bin_idxs_to_remove,
+                               col_idxs=bin_idxs_to_remove) 
+        numpy.set_printoptions(threshold = numpy.nan)
         # subtract identity from the minor
         minor_minus_identity = minor - numpy.identity(minor.shape[0])
+        print(minor_minus_identity.sum(axis=1))
+        print(minor_minus_identity.shape)
 
         for istate, state_idx in enumerate(self.state_idx_list):
             # Get right hand side (rhs). For a given row, sum all the transition
@@ -86,15 +117,13 @@ class ComProb:
             # Remove the rows corresponding to a bin in a macrostate (from
             # state_idx_list). This makes the indexing the same as for the
             # minor. 
-            rhs = self.remove_rows(rhs, bin_idxs_for_macrostates)
-            print('rhs: ' + repr(idx_map))
-            idx_map = self.remove_rows(idx_map, bin_idxs_for_macrostates)
-            print("idx_map: " + repr(idx_map))
+            rhs = self.remove_rows(rhs, bin_idxs_to_remove)
+            idx_map = self.remove_rows(idx_map, bin_idxs_to_remove)
 
             # Solve the matrix equation; ``sol`` gives the committor 
             # probabilities.
-            #sol = numpy.linalg.solve(minor_minus_identity, -1*rhs)
-            sol = numpy.linalg.lstsq(minor_minus_identity, -1*rhs)[0]
+            sol = numpy.linalg.solve(minor_minus_identity, -1*rhs)
+            #sol = numpy.linalg.lstsq(minor_minus_identity, -1*rhs)[0]
             print("solution: " + repr(sol))
 
             # Place the solution into the results array, mapping the indices
@@ -255,7 +284,7 @@ Command-line options
 
         # remake the state_map if necessary
         if self.i_use_color:
-            new_state_map = numpy.empty(self.nstate*self.nbins)
+            new_state_map = numpy.empty(self.nstates*self.nbins)
             for i in xrange(self.nbins):
                 for j in xrange(self.nstates):
                     new_state_map[self.nstates*i+j] = self.state_map[i] 
@@ -303,6 +332,10 @@ Command-line options
         if not self.i_use_color:
             self.transition_matrix = self.convert_colored_to_noncolored_matrix(
                                                          self.transition_matrix)
+        #REMOVE THIS??
+        self.transition_matrix = normalize(self.transition_matrix) 
+        
+           
  
 
     def convert_colored_to_noncolored_matrix(self, mat):
@@ -312,7 +345,6 @@ Command-line options
         nbins = self.nbins
         nstates = self.nstates
         newmat = numpy.empty((nbins, nbins))
-        print("Dimensions of matrix: " + repr(mat.shape))
         for i in xrange(nbins):
             for j in xrange(nbins):
                 newmat[i,j] = numpy.sum(mat[i*nstates:(i+1)*nstates,
