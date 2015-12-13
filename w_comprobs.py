@@ -90,7 +90,6 @@ class ComProb:
         # bad_idxs holds everything at first; we then remove what we want to 
         # remain
         bad_idxs = range(self.transition_matrix.shape[0])
-        print(components)
         for component_idx in components:
             bad_idxs.remove(component_idx)
 
@@ -103,11 +102,8 @@ class ComProb:
         minor = self.get_minor(self.transition_matrix,
                                row_idxs=bin_idxs_to_remove,
                                col_idxs=bin_idxs_to_remove) 
-        numpy.set_printoptions(threshold = numpy.nan)
         # subtract identity from the minor
         minor_minus_identity = minor - numpy.identity(minor.shape[0])
-        print(minor_minus_identity.sum(axis=1))
-        print(minor_minus_identity.shape)
 
         for istate, state_idx in enumerate(self.state_idx_list):
             # Get right hand side (rhs). For a given row, sum all the transition
@@ -129,7 +125,6 @@ class ComProb:
             # probabilities.
             sol = numpy.linalg.solve(minor_minus_identity, -1*rhs)
             #sol = numpy.linalg.lstsq(minor_minus_identity, -1*rhs)[0]
-            print("solution: " + repr(sol))
 
             # Place the solution into the results array, mapping the indices
             # back to match the original.
@@ -314,8 +309,6 @@ Command-line options
         if not self.i_use_color:
             self.transition_matrix = self.convert_colored_to_noncolored_matrix(
                                                          self.transition_matrix)
-        #REMOVE THIS??
-        self.transition_matrix = normalize(self.transition_matrix) 
            
  
     def convert_colored_to_noncolored_matrix(self, mat):
@@ -330,6 +323,8 @@ Command-line options
                 newmat[i,j] = numpy.sum(mat[i*nstates:(i+1)*nstates,
                                             j*nstates:(j+1)*nstates]
                                         ) 
+        #REMOVE THIS??
+        newmat = normalize(newmat) 
         return newmat
 
     def go(self):
