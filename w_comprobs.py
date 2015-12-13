@@ -69,6 +69,11 @@ class ComProb:
         nbins = self.transition_matrix.shape[0]
         results = numpy.zeros((nbins, len(self.state_idx_list)))
 
+        # First, remove bins that are in one of the specified states (this is
+        # probably NOT actually needed. Think about removing this in the
+        # future), or that are not part of the largest connected subgraph.
+        # Code up though making the "minor"-the transition matrix with rows and
+        # columns corresponding to these elements removed--deals with this.
         # Get the indices of bins that are in one of the specified states.
         bin_idxs_to_remove = [] 
         for state_idx in self.state_idx_list:
@@ -135,23 +140,6 @@ class ComProb:
             results[numpy.where(self.state_map == state_idx)[0], istate] = 1.0
         return results
 
-    #def solve_without_minor(self):
-    #    nbins = self.transition_matrix.shape[0]
-    #    results = numpy.empty((nbins, len(self.state_idx_list)))
-
-    #    transmat_minus_identity = self.transition_matrix - numpy.identity(nbins)
-    #    for istate, state_idx in enumerate(self.state_idx_list):
-    #        # Get right hand side (rhs). For a given row, sum all the transition
-    #        # probabilities corresponding to transitions into state_idx.
-    #        rhs = numpy.empty(self.transition_matrix.shape[0])
-    #        idxs_of_bins_in_cur_state = numpy.where(self.state_map == state_idx)[0]
-    #        rhs = numpy.sum(self.transition_matrix[:, idxs_of_bins_in_cur_state],
-    #                     axis=1)
-    #        # Solve the matrix equation; ``sol`` gives the committor 
-    #        # probabilities.
-    #        sol = numpy.linalg.solve(transmat_minus_identity, -1*rhs)
-    #        results[:,i] = sol
-    #    return results
 
 
 class WComProb(WESTTool):
@@ -171,6 +159,8 @@ flag) contains the following dataset:
 
   /committor_probabilities: [bin, state_0, state_1]
 
+  /isocommittor_bins: [bin_indices]
+
 -----------------------------------------------------------------------------
 Command-line options
 -----------------------------------------------------------------------------
@@ -181,13 +171,6 @@ Command-line options
         self.data_reader = WESTDataReader()
         self.progress = ProgressIndicatorComponent()
         
-        #self.output_filename = None
-        #self.transmat_filename = None
-        #self.assignment_filename = None
-        #
-        #self.output_file = None
-        #self.transmat_file = None
-        #self.assignments_file = None
         
     def add_args(self, parser):
         ''' Add arguments for specifying input files, in addition to options
@@ -198,8 +181,8 @@ Command-line options
 
         iogroup = parser.add_argument_group('input/output options')
         iogroup.add_argument('-a', '--assignments', default='assign.h5',
-                             help='''Use bin and macrostate assignments stored
-                             in ASSIGNMENTS. (default: %(default)s).''')
+                             help='''Use state map stored in ASSIGNMENTS.
+                             (default: %(default)s).''')
 
         iogroup.add_argument('-t', '--transition-matrices', 
                              dest='transition_matrices', 
@@ -242,7 +225,7 @@ Command-line options
     def _eval(self, string):
         '''Evaluate the given string to a Python object, and return it.'''
         return eval(string, {'numpy': numpy,
-                             'np': numpy})
+                             'np': numpy    })
                             
 
     def process_args(self, args):
@@ -257,8 +240,8 @@ Command-line options
                 
         self.alpha = args.alpha
         if self.alpha <= 0 or self.alpha > 0.5:
-            raise ValueError('Parameter error -- ALPHA must be between 0 and'
-                             '0.5 (supplied: {:f}).'.format(sel.alpha))
+            raise ValueError('ALPHA must be between 0 and 0.5 (supplied: {:f}).'
+                             .format(self.alpha))
 
         self.state_idx_list = self._eval(args.state_indices)
         self.i_use_color = args.i_use_color
@@ -271,7 +254,6 @@ Command-line options
         self.output_file = h5io.WESTPAH5File(self.output_filename, 'w', 
                                              creating_program=True)
         h5io.stamp_creator_data(self.output_file)
-
         self.assignments_file = h5io.WESTPAH5File(self.assignments_filename, 
                                                   'r')
         self.transmat_file = h5io.WESTPAH5File(self.transmat_filename, 'r')
@@ -282,7 +264,7 @@ Command-line options
         self.state_labels = self.assignments_file['state_labels'][...]
         self.state_map = numpy.array(self.assignments_file['state_map'][...])
 
-        # remake the state_map if necessary
+        # Remake the state_map to account for the colored scheme, if necessary
         if self.i_use_color:
             new_state_map = numpy.empty(self.nstates*self.nbins)
             for i in xrange(self.nbins):
@@ -334,10 +316,8 @@ Command-line options
                                                          self.transition_matrix)
         #REMOVE THIS??
         self.transition_matrix = normalize(self.transition_matrix) 
-        
            
  
-
     def convert_colored_to_noncolored_matrix(self, mat):
         '''Convert the colored matrix ``mat`` to a noncolored matrix, using 
         information on the number of states and bins from self.nstates and 
