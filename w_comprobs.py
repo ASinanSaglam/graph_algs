@@ -329,12 +329,37 @@ Command-line options
         nbins = self.nbins
         nstates = self.nstates
         newmat = numpy.empty((nbins, nbins))
+        # Figure out what dataset to use 
+        cfe = self.transmat_file['conditional_flux_evolution']
+        idx_map = numpy.zeros(cfe.shape[0])
+        for i in xrange(idx_map.shape[0]):
+            # Set this to the last iteration in the given range. Here, 
+            # [i][0][0][1] gives the "stop_iter", which is exclusive.  Subtract
+            # 1 so it is inclusive.
+            idx_map[i] = cfe[i][0][0][1] - 1
+        
+        # We must weigh each steady-state ensemble's contribution to the
+        # estimate by the fraction of probability in that steady state
+        print(idx_map)
+        print(self.iteration)
+        where = numpy.where(idx_map == self.iteration)[0][0]
+        print(where)
+        colored_prob_vec = numpy.array(
+          self.transmat_file['bin_prob_evolution'][where]
+                                       )
+        uncolored_prob_vec = colored_prob_vec.reshape(-1,nstates).sum(axis=1) 
+        # Divide the weight in each bin for each state state ensemble by the
+        # weight in the corresponding bin for all steady state ensembles.
+        scaling_vec = colored_prob_vec/(numpy.repeat(uncolored_prob_vec, nstates))
+        scaling_vec[~numpy.isfinite(scaling_vec)] = 0.0
+        mat = scaling_vec.reshape((-1,1))*mat
+        
         for i in xrange(nbins):
             for j in xrange(nbins):
                 newmat[i,j] = numpy.sum(mat[i*nstates:(i+1)*nstates,
                                             j*nstates:(j+1)*nstates]
                                         ) 
-        newmat = normalize(newmat) 
+        #newmat = normalize(newmat) 
         return newmat
 
     def go(self):
